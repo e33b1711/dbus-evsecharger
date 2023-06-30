@@ -54,6 +54,7 @@ class DbusEvseChargerService:
         self._dbusservice.add_path('/FirmwareVersion', int(data['divert_update']))
         self._dbusservice.add_path('/HardwareVersion', 2)
         self._dbusservice.add_path('/Serial', data['comm_success'])
+        self._dbusservice.add_path('/Position', 0)
         self._dbusservice.add_path('/Connected', 1)
         self._dbusservice.add_path('/UpdateIndex', 0)
 
@@ -116,38 +117,50 @@ class DbusEvseChargerService:
         return URL
 
     def _setEvseChargerValue(self, parameter, value):
-        URL = self._getEvseChargerMqttPayloadUrl(parameter, str(value))
-        request_data = requests.get(url=URL)
+        #URL = self._getEvseChargerMqttPayloadUrl(parameter, str(value))
+        #request_data = requests.get(url=URL)
 
         # check for response
-        if not request_data:
-            raise ConnectionError("No response from Evse-Charger - %s" % (URL))
+        #if not request_data:
+        #    raise ConnectionError("No response from Evse-Charger - %s" % (URL))
 
-        json_data = request_data.json()
+        #json_data = request_data.json()
 
         # check for Json
-        if not json_data:
-            raise ValueError("Converting response to JSON failed")
+        #if not json_data:
+        #    raise ValueError("Converting response to JSON failed")
 
-        if json_data[parameter] == str(value):
-            return True
-        else:
-            logging.warning("Evse-Charger parameter %s not set to %s" % (parameter, str(value)))
-            return False
+        #if json_data[parameter] == str(value):
+        #    return True
+        #else:
+        #    logging.warning("Evse-Charger parameter %s not set to %s" % (parameter, str(value)))
+        #    return False
+        return true
 
     def _getEvseChargerData(self):
-        URL = self._getEvseChargerStatusUrl()
-        request_data = requests.get(url=URL)
+        #URL = self._getEvseChargerStatusUrl()
+        #request_data = requests.get(url=URL)
 
         # check for response
-        if not request_data:
-            raise ConnectionError("No response from Evse-Charger - %s" % (URL))
+        #if not request_data:
+        #    raise ConnectionError("No response from Evse-Charger - %s" % (URL))
 
-        json_data = request_data.json()
+        #json_data = request_data.json()
 
         # check for Json
-        if not json_data:
-            raise ValueError("Converting response to JSON failed")
+        #if not json_data:
+        #    raise ValueError("Converting response to JSON failed")
+            
+        json_data = {
+            'voltage'           : 333,
+            'amp'               : 100,
+            'wattsec'           : 3000000,
+            'state'             : 3,
+            'pilot'             : 12,
+            'temp1'             : 26,
+            'divert_update'     : 123,
+            'comm_success'      : "success"
+            }
 
         return json_data
 
@@ -162,9 +175,11 @@ class DbusEvseChargerService:
         try:
             # get data from go-eCharger
             data = self._getEvseChargerData()
+            
+            
 
             # send data to DBus
-	    voltage = int(data['voltage'])
+            voltage = int(data['voltage'])
             self._dbusservice['/Ac/L1/Power'] = int(data['amp'] * voltage / 1000)
             self._dbusservice['/Ac/L2/Power'] = 0
             self._dbusservice['/Ac/L3/Power'] = 0
